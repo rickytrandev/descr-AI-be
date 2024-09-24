@@ -1,69 +1,131 @@
-import { useState } from "react"
+import { Description } from "@/containers/DescriptionsContainer";
+import { useState } from "react";
+import { useMutation } from "react-query";
 
 export const useForm = (
-  setDescriptions: React.Dispatch<React.SetStateAction<string[]>>
+  setDescriptions: React.Dispatch<React.SetStateAction<Description[]>> = () => {}
 ) => {
-  const [image, setImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<{
-    title?: string
-    brand?: string
-    keywords?: string
-    image?: string
-  }>({})
+    title?: string;
+    brand?: string;
+    keywords?: string;
+    image?: string;
+    fetch?: string;
+  }>({});
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0])
-      setImagePreview(URL.createObjectURL(e.target.files[0]))
-    }
-  }
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
-  const generateDescription = (
+  const fetchDescriptions = async (
+    imageBase64: string,
     title: string,
     brand: string,
     keywords: string
-  ) => {
-    // This is a mock function. Replace with actual API call in production.
-    return `${brand} presents the ${title}. ${
-      keywords.split(",")[0]
-    } and more. Buy now!`
-  }
+  ): Promise<Description[]> => {
+    const response = await fetch("/api/getDescriptions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ imageBase64, title, brand, keywords }),
+    });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    console.log("submitted")
-    const form = e.currentTarget
-    const title = (form.elements.namedItem("title") as HTMLInputElement).value
-    const brand = (form.elements.namedItem("brand") as HTMLInputElement).value
+    if (!response.ok) {
+      throw new Error("Failed to fetch descriptions");
+    }
+
+    return response.json();
+  };
+
+  const mutation = useMutation(
+    ({ imageBase64, title, brand, keywords }: { imageBase64: string; title: string; brand: string; keywords: string }) =>
+      fetchDescriptions(imageBase64, title, brand, keywords),
+    {
+      onMutate: () => {
+        console.log("Mutation started, setting isLoading to true");
+        setIsLoading(true);
+      },
+      onSuccess: (data) => {
+        console.log("Mutation successful, setting isLoading to false");
+        setDescriptions(data);
+        setIsLoading(false);
+      },
+      onError: (error) => {
+        console.error("Mutation error, setting isLoading to false", error);
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          fetch: "Failed to generate descriptions",
+        }));
+        setIsLoading(false);
+      },
+      onSettled: () => {
+        console.log("Mutation settled, setting isLoading to false");
+        setIsLoading(false);
+      },
+    }
+  );
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImage(e.target.files[0]);
+      setImagePreview(URL.createObjectURL(e.target.files[0]));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log("Form submitted");
+    const form = e.currentTarget;
+    const title = (form.elements.namedItem("title") as HTMLInputElement).value;
+    const brand = (form.elements.namedItem("brand") as HTMLInputElement).value;
     const keywords = (
       form.elements.namedItem("keywords") as HTMLTextAreaElement
-    ).value
+    ).value;
 
-
-    const newErrors: { title?: string; brand?: string; keywords?: string, image?: string  } = {}
-    if (!title) newErrors.title = "Title is required"
-    if (!brand) newErrors.brand = "Brand is required"
-    if (!keywords) newErrors.keywords = "Keywords are required"
-    if (!image) newErrors.image = "An image is required"
+    const newErrors: {
+      title?: string;
+      brand?: string;
+      keywords?: string;
+      image?: string;
+      fetch?: string;
+    } = {};
+    if (!title) newErrors.title = "Title is required";
+    if (!brand) newErrors.brand = "Brand is required";
+    if (!keywords) newErrors.keywords = "Keywords are required";
+    if (!image) newErrors.image = "An image is required";
 
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
+      setErrors(newErrors);
+      return;
     }
 
     // Clear errors if validation passes
-    setErrors({})
+    setErrors({});
 
-    // Generate 3 variations
-    // const newDescriptions = [
-    //   generateDescription(title, brand, keywords),
-    //   generateDescription(title, brand, keywords),
-    //   generateDescription(title, brand, keywords)
-    // ]
-
-    // setDescriptions(prev => [...newDescriptions, ...prev])
-  }
+    try {
+      if (image) {
+        const imageToBase64 = await fileToBase64(image);
+        console.log("Calling mutation");
+        mutation.mutate({ imageBase64: imageToBase64, title, brand, keywords });
+      }
+    } catch (error) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        fetch: "Failed to generate descriptions",
+      }));
+    }
+  };
 
   return {
     image,
@@ -71,6 +133,6 @@ export const useForm = (
     errors,
     handleImageChange,
     handleSubmit,
-    generateDescription,
-  }
-}
+    isLoading
+  };
+};

@@ -7,14 +7,33 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ImagePlus } from "lucide-react"
 import { useForm } from "@/hooks/useForm"
+import { Description } from "@/containers/DescriptionsContainer"
 
-type ProductFormProps = {
-  setDescriptions: React.Dispatch<React.SetStateAction<string[]>>
+type ErrorsProps = {
+  title?: string
+  brand?: string
+  keywords?: string
+  image?: string
+  fetch?: string
 }
 
-export function ProductForm({ setDescriptions }: ProductFormProps) {
-  const { errors, handleSubmit, handleImageChange, imagePreview } = useForm(setDescriptions)
+type ProductFormProps = {
+  setDescriptions: React.Dispatch<React.SetStateAction<Description[]>>
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>
+  isLoading: boolean
+  imagePreview: string | null
+  errors: ErrorsProps
+  handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+}
 
+export function ProductForm({
+  setDescriptions,
+  isLoading,
+  handleSubmit,
+  imagePreview,
+  handleImageChange,
+  errors,
+}: ProductFormProps) {
   return (
     <div className=" mx-auto w-full">
       <div>
@@ -98,7 +117,11 @@ export function ProductForm({ setDescriptions }: ProductFormProps) {
                   <p className="text-red-500 text-sm">{errors.keywords}</p>
                 )}
               </div>
-              <Button type="submit" className="w-full bg-indigo-500">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-indigo-500"
+              >
                 Generate Descriptions
               </Button>
             </form>
