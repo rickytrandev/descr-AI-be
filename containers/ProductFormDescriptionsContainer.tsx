@@ -22,7 +22,6 @@ function ProductFormDescriptions() {
   return (
     <div className="grid grid-cols-3 gap-4">
       <ProductForm
-        setDescriptions={setDescriptions}
         isLoading={isLoading}
         handleSubmit={handleSubmit}
         handleImageChange={handleImageChange}

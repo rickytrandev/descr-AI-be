@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ImagePlus } from "lucide-react"
-import { useForm } from "@/hooks/useForm"
 import { Description } from "@/containers/DescriptionsContainer"
 
 type ErrorsProps = {
@@ -18,7 +17,6 @@ type ErrorsProps = {
 }
 
 type ProductFormProps = {
-  setDescriptions: React.Dispatch<React.SetStateAction<Description[]>>
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>
   isLoading: boolean
   imagePreview: string | null
@@ -27,7 +25,6 @@ type ProductFormProps = {
 }
 
 export function ProductForm({
-  setDescriptions,
   isLoading,
   handleSubmit,
   imagePreview,
