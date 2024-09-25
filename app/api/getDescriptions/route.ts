@@ -31,10 +31,8 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content:
-            "You are an AI that processes images and provides detailed descriptions.",
+          content: prompt,
         },
-        { role: "user", content: prompt },
       ],
     })
 
@@ -56,7 +54,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error processing request:", error)
     return NextResponse.json(
-      { error: "Error processing request" },
+      { error: `Error processing request: ${error}` },
       { status: 500 }
     )
   }
