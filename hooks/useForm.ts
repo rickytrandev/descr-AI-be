@@ -53,16 +53,13 @@ export const useForm = (
       fetchDescriptions(imageBase64, title, brand, keywords),
     {
       onMutate: () => {
-        console.log("Mutation started, setting isLoading to true");
         setIsLoading(true);
       },
       onSuccess: (data) => {
-        console.log("Mutation successful, setting isLoading to false");
         setDescriptions(data);
         setIsLoading(false);
       },
       onError: (error) => {
-        console.error("Mutation error, setting isLoading to false", error);
         setErrors((prevErrors) => ({
           ...prevErrors,
           fetch: "Failed to generate descriptions",
@@ -70,7 +67,6 @@ export const useForm = (
         setIsLoading(false);
       },
       onSettled: () => {
-        console.log("Mutation settled, setting isLoading to false");
         setIsLoading(false);
       },
     }

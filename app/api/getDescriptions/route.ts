@@ -11,10 +11,8 @@ const openai = new OpenAI({
 
 export async function POST(req: NextRequest) {
   try {
-    // console.log("POST request received")
 
     const { imageBase64, title, brand, keywords } = await req.json()
-    // console.log("Request body parsed:", { imageBase64, title, brand, keywords })
 
     if (!imageBase64) {
       return NextResponse.json({ error: "Image is required" }, { status: 400 })
@@ -23,18 +21,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 })
     }
 
-    // console.log("Base64 Image:", imageBase64);
-    const prompt = `You are an AI content writer that utilizes images and brand descriptions to create rich product descriptions and marketing content for e-commerce. Here is an image in base64 format: ${imageBase64}. The title of the product is "${title}", the brand is "${brand}", and the SEO keywords are "${keywords}". Please provide 3 different product descriptions for me to pick from. Please return the response as a JSON array where each element is an object containing a descriptione of the product. Example format: [{ "title": "Title 1", "description": "Description 1" }, { "title": "Title 2", "description": "Description 2" }, { "title": "Title 3", "description": "Description 3" }].`
+
+    const prompt = `You are an AI content writer that utilizes images and brand descriptions to create rich product descriptions and marketing content for e-commerce. Here is an image in base64 format: ${imageBase64}. The title of the product is "${title}", the brand is "${brand}", and the SEO keywords are "${keywords}". Please provide 3 different product descriptions for me to pick from. Please return the response as a JSON array where each element is an object containing a description of the product. Example format: [{ "title": "Title 1", "description": "Description 1" }, { "title": "Title 2", "description": "Description 2" }, { "title": "Title 3", "description": "Description 3" }].`
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
-          role: "system",
-          content: prompt,
+          role: "user",
+          content: [
+            { type: "text", text: prompt },
+            {
+              type: "image_url",
+              image_url: {
+                url: imageBase64,
+              },
+            },
+          ],
         },
       ],
-    })
+    });
 
     let response = completion.choices?.[0]?.message?.content
 
