@@ -10,7 +10,6 @@ export const useForm = (
   const [errors, setErrors] = useState<{
     title?: string;
     brand?: string;
-    keywords?: string;
     image?: string;
     fetch?: string;
   }>({});
@@ -81,7 +80,6 @@ export const useForm = (
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted");
     const form = e.currentTarget;
     const title = (form.elements.namedItem("title") as HTMLInputElement).value;
     const brand = (form.elements.namedItem("brand") as HTMLInputElement).value;
@@ -92,13 +90,11 @@ export const useForm = (
     const newErrors: {
       title?: string;
       brand?: string;
-      keywords?: string;
       image?: string;
       fetch?: string;
     } = {};
     if (!title) newErrors.title = "Title is required";
     if (!brand) newErrors.brand = "Brand is required";
-    if (!keywords) newErrors.keywords = "Keywords are required";
     if (!image) newErrors.image = "An image is required";
 
     if (Object.keys(newErrors).length > 0) {
@@ -112,7 +108,6 @@ export const useForm = (
     try {
       if (image) {
         const imageToBase64 = await fileToBase64(image);
-        console.log("Calling mutation");
         mutation.mutate({ imageBase64: imageToBase64, title, brand, keywords });
       }
     } catch (error) {

@@ -10,7 +10,6 @@ import { ImagePlus } from "lucide-react"
 type ErrorsProps = {
   title?: string
   brand?: string
-  keywords?: string
   image?: string
   fetch?: string
 }
@@ -104,14 +103,10 @@ export function ProductForm({
               <div className="space-y-2">
                 <Label htmlFor="keywords">SEO Keywords</Label>
                 <Textarea
-                  className={`${errors.keywords && "border-red-500"}`}
                   id="keywords"
                   name="keywords"
                   placeholder="Enter SEO keywords (comma-separated)"
                 />
-                {errors.keywords && (
-                  <p className="text-red-500 text-sm">{errors.keywords}</p>
-                )}
               </div>
               <Button
                 type="submit"
